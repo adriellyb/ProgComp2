@@ -15,10 +15,9 @@ int main(int argc, char *argv[]) {
 /*  Como executar codigo em C no cmd */
 /*  1) Abrir o diretorio onde o arquivo esta armazenado no computador
     2) Executar o comando abaixo para compilar o arquivo .c/.cpp e gerar o .exe
-
         gcc -o teste testeArgcArgv.cpp
 
-    3) Executar o .exe com o comando abaixo
-
-        ./teste
+    3) Executar o .exe com o comando seguinte: ./teste
+    4) Exemplo de entrada:
+        ./teste 'A' 'd' 'r' 'i' 'e' 'l' 'l' 'y'
 */
