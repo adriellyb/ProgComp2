@@ -21,16 +21,16 @@ void ordenandoPorPontos(JOGADOR *jogadores) {
 	JOGADOR temp;
 	
 	// ordenando valores do menor para o maior
-//	for(i = 0; i < 5; i++) {
-//        for(j = i; j < 5; j++) {
-//        	
-//        	if((jogadores + i)->pontos > (jogadores + j)->pontos) {
-//        		temp = (jogadores + i);
-//        		(jogadores + i) = (jogadores + j);
-//        		(jogadores + j) = temp;
-//			}
-//        }
-//    }
+	for(i = 0; i < 5; i++) {
+        for(j = i; j < 5; j++) {
+        	
+        	if(jogadores[i].pontos > jogadores[j].pontos) {
+        		temp = jogadores[i];
+        		jogadores[i] = jogadores[j];
+        		jogadores[j] = temp;
+			}
+        }
+    }
     
     // imprimindo vetor jogadores
 	imprimirJogadores(jogadores);
