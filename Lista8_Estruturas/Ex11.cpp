@@ -23,7 +23,7 @@ void ordenandoPorPontos(JOGADOR *jogadores) {
 	for(i = 0; i < 5; i++) {
         for(j = i; j < 5; j++) {
         	
-        	if(jogadores[i].pontos < jogadores[j].pontos) {
+        	if(jogadores[i].pontos > jogadores[j].pontos) {
         		temp = jogadores[i];
         		jogadores[i] = jogadores[j];
         		jogadores[j] = temp;

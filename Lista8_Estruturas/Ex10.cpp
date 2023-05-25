@@ -11,7 +11,7 @@ void imprimirJogadores(JOGADOR *jogadores) {
 	int i;
 	
 	for(i = 0; i < 5; i++) {
-		printf("Jogador %d => Nome: %s\tPontos: %d\n", i, (jogadores + i)->nome, (jogadores + i)->pontos);
+		printf("Jogador %d => Nome: %s Pontos: %d\n", i, (jogadores + i)->nome, (jogadores + i)->pontos);
 	}
 }
 
@@ -22,9 +22,9 @@ int main(void) {
 	
 	// lendo vetor jogadores
 	for(i = 0; i < 5; i++) {
+		fflush(stdin);
 		fgets((jogadores + i)->nome, 41, stdin);
 		scanf("%d", &(jogadores + i)->pontos);
-		getchar();
 	}
 	
 	// imprimindo vetor jogadores
