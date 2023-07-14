@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define CAPACIDADE_MAX 400
 
 typedef struct _FILMES {
 	char nome[40];
 	int sala;
-	int total_lugares = 400;
+	int total_lugares = CAPACIDADE_MAX;
 } FILMES;
 
 typedef struct _INGRESSOS {
+	int tipo; 				// 1 - normal, 2 - meia, 3 - itasil 
 	float preco;
+	char poltrona[5];
 } INGRESSOS;
 
 FILMES listaFilmes[3];
@@ -18,34 +21,31 @@ void registrarFilmes() {
 	// registrando primeiro filme
 	strcpy(listaFilmes[0].nome, "Velozes e Furiosos 137");
 	listaFilmes[0].sala = 1;
-	listaFilmes[0].total_lugares = 400;
 	
 	// registrando segundo filme
 	strcpy(listaFilmes[1].nome, "The Flash");
 	listaFilmes[1].sala = 2;
-	listaFilmes[1].total_lugares = 400;
 	
 	// registrando terceiro filme
 	strcpy(listaFilmes[2].nome, "Tranformers");
 	listaFilmes[2].sala = 3;
-	listaFilmes[2].total_lugares = 400;
 	
 //	return *listaFilmes;
 }
 
 int selecionarFilme() {
-	int num_sala;
+	int numSala;
 	
 	printf("Estes sao os filmes em cartaz:\nSala 1: Velozes e Furiosos 137\nSala 2: The Flash\nSala 3: Tranformers\n\n");
-	printf("Qual filme deseja assistir? Digite a sala que corresponde ao filme desejado: ");
+	printf("-> Qual filme deseja assistir? Digite a sala que corresponde ao filme desejado: ");
 	
-	scanf("%d", &num_sala);
+	scanf("%d", &numSala);
 	
-	if(num_sala == 1 || num_sala == 2 || num_sala == 3) {
-		return num_sala;
+	if(numSala == 1 || numSala == 2 || numSala == 3) {
+		return numSala;
 	}
-	else if(num_sala == 0) {
-		return num_sala;
+	else if(numSala == 0) {
+		return numSala;
 	}
 	else {
 		printf("\nEsta sala nao existe! Tente novamente.\n\n");
@@ -55,55 +55,183 @@ int selecionarFilme() {
 
 int qtdIngressos(FILMES *filme) {
 	
-	int qtd_ingressos;
-	printf("Temos %d ingressos. Quantos ingressos deseja comprar? ", filme->total_lugares);
-	scanf("%d", &qtd_ingressos);
+	int totalIngressos;
+	printf("-> Temos %d ingressos. Quantos ingressos deseja comprar? ", filme->total_lugares);
+	scanf("%d", &totalIngressos);
 	
-	if (qtd_ingressos <= filme->total_lugares && qtd_ingressos > 0) {
-		printf("\n\nVoce selecionou %d ingesso(s)\n\n", qtd_ingressos);
-		filme->total_lugares = filme->total_lugares-qtd_ingressos;
-		return qtd_ingressos;
+	if (totalIngressos <= filme->total_lugares && totalIngressos > 0) {
+		printf("\nVoce selecionou %d ingesso(s)\n\n", totalIngressos);
+		filme->total_lugares = filme->total_lugares-totalIngressos;
+		return totalIngressos;
 	} else {
-		printf("\n\nQuantidade desejada nao esta disponivel! Tente novamente.\n\n");
+		printf("\nQuantidade desejada indisponivel! Tente novamente.\n\n");
 		qtdIngressos(filme);
 	}
 }
 
-int descontoIngressos(int qtd_ingressos) {
-	int meia, itasil;
+int validarCarteiraEstudante(char numCarteira[]) {
+	int numsInt[4], numsMult[4], fator = 2, soma_total = 0, DV;
 	
-	printf("Quantos ingressos são meia entrada?");
-	scanf("%d", &meia);
+	// criando vetor inteiro com os 4 primeiros digitos	
+	for(int i = 0; i < 4; i++)
+		numsInt[i] = numCarteira[i]-'0';
 	
-	if(meia > 0 && meia <= qtd_ingressos) {
-		for(int i = 0; i < meia; i++) {
-			// adicionar codigo
+	for(int i = 3; i >= 0; i--) {
+		// multiplicando cada inteiro de tras pra frente com fator alternando
+		numsMult[i] = numsInt[i] * fator;
+		fator == 2 ? fator = 1 : fator = 2;
+		
+		// verificando se o numero multiplicado eh maior que 9
+		if(numsMult[i] > 9) {
+			// sendo maior que 9, ocorre o somatorio de seus algarismos
+			int soma_2digitos = 0, numero = numsMult[i];
+			while( numero != 0) {
+				soma_2digitos += numero % 10;
+				numero = numero / 10;	
+			}
+			numsMult[i] = soma_2digitos;
 		}
+		// somando numeros multiplicados
+		soma_total += numsMult[i];
+	}
+	
+	//	verificando se o resto da divisao entre a soma e 10 eh igual a 0. Caso seja, o digito verificador (DV) vale 0, senao DV = 10 - resto da divisao 
+	soma_total % 10 == 0 ? DV = 0 : DV = 10 - (soma_total % 10);
+	
+	// verificando se DV eh iguail ao ultimo digito da carteira de estudante
+	if(DV == numCarteira[4]-'0')
+		return 1;
+	else
+		return 0;
+}
+
+int descontoIngressoMeia(INGRESSOS *listaIngressos, int totalIngressos) {
+	int totalMeias, meiasValidas = 0, i = 0, j = 0;
+	char numCarteira[5];
+	
+	printf("-> Quantos ingressos sao meia entrada? ");
+	scanf("%d", &totalMeias);
+	
+	if(totalMeias > 0 && totalMeias <= totalIngressos) {
+		while(i < totalMeias) {
+			printf("\n-> Insira o numero da carteira de estudante (Ingresso %d/%d): ", i+1, totalMeias);
+			fflush(stdin);
+			gets(numCarteira);
+
+			if(numCarteira[0] == '0') {
+				i++;
+				continue;
+			}
+
+			if(validarCarteiraEstudante(numCarteira)) {
+				(listaIngressos + j)->preco = 10.00; // 20.00 * 0.5 (50% de desconto)
+				(listaIngressos + j)->tipo = 2;
+				meiasValidas++;
+				j++;
+				i++;
+			}
+			else {
+				printf("\nCarteira de estudante invalida! Tente novamente.\n");
+			}
+		}
+	}
+	else if(totalMeias == 0) {
+		return 0;
+	}
+	else {
+		printf("\nQuantidade invalida!\n\n");
+		descontoIngressoMeia(listaIngressos, totalIngressos);
+	}
+
+	return meiasValidas;
+}
+
+int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeiasValidas) {
+	int totalItasil, codigoDoCliente, i = 0, j = totalMeiasValidas, validador = 1;  // i = indice dos ingressos itasil com codigo, j = indice do array de ingressos
+	
+	printf("\n-> Quantos ingressos sao cliente Itasil? ");
+	scanf("%d", &totalItasil);
+
+	
+	if(totalItasil > 0 && totalItasil <= totalIngressos-totalMeiasValidas) {
+
+		int listaCodigosValidos[totalItasil];
+
+		while(i < totalItasil) {
+			printf("\n-> Insira o numero do codigo do cliente (Ingresso %d/%d): ", i+1, totalItasil);
+			scanf("%d", &codigoDoCliente);
+
+			if(codigoDoCliente == 0) {
+				i++;
+				continue;
+			}
+
+			if(codigoDoCliente % 341 == 0) {
+				for(int k = 0; k < totalItasil; k++) {
+					if(codigoDoCliente == listaCodigosValidos[k]) {
+						printf("\nCodigo do cliente ja foi utilizado! Tente novamente.\n");
+						validador = 0;
+						break;
+					}
+				}
+
+				if(validador) {
+					listaCodigosValidos[i] = codigoDoCliente;
+					(listaIngressos + j)->preco = 14.00; // 20.00 - (20.00 * 0.3) (30% de desconto)
+					(listaIngressos + j)->tipo = 3;
+					j++;
+					i++;
+				}
+			}
+			else {
+				printf("\nCodigo do cliente invalido! Tente novamente.\n");
+			}
+		}
+	}
+	else if(totalItasil == 0) {
+		return 0;
+	}
+	else {
+		printf("\nQuantidade invalida!\n\n");
+		descontoItasil(listaIngressos, totalIngressos, totalMeiasValidas);
 	}
 }
 
 int main(void) {
 	
 	registrarFilmes();
-	int num_sala, qtd_ingressos;
+	int numSala, totalIngressos, totalMeiasValidas, totalItasilValidos;
 	
 	do {
-		printf("Bem-vindo a rede de cinemas Cinesystem\n\n");
+		printf("###########  Bem-vindo a rede de cinemas Mariano Pinheiro  ###########\n\n");
 		
 		// selecionando o filme
-		num_sala = selecionarFilme();
+		numSala = selecionarFilme();
 		
-		if(num_sala) {
-			printf("\n\nVoce escolheu %s\n\n", listaFilmes[num_sala-1].nome);
+		if(numSala) {
+			printf("\nVoce escolheu %s\n\n", listaFilmes[numSala-1].nome);
 			
 			// inserir lugares
-			qtd_ingressos = qtdIngressos(&listaFilmes[num_sala-1]);
-//			printf("\n%d\n", listaFilmes[num_sala-1].total_lugares);
+			totalIngressos = qtdIngressos(&listaFilmes[numSala-1]);
+			
+			INGRESSOS listaIngressos[totalIngressos];
+			
+			// desconto meia entrada
+			totalMeiasValidas = descontoIngressoMeia(listaIngressos, totalIngressos);
+
+			// desconto itasil
+			descontoItasil(listaIngressos, totalIngressos, totalMeiasValidas);
+
+			//
+
+			// preencher e somar valores dos ingressos
+			
+			for(int i = 0; i < totalIngressos; i++) {
+				printf("\n%.2f", listaIngressos[i].preco);
+			}	
 		}
 				
-	} while(num_sala != 0);
-	
-	
-	
+	} while(numSala != 0);
+		
 	return 0;
 }
