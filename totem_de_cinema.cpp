@@ -2,17 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 #define CAPACIDADE_MAX 400
+#define PRECO_NORMAL 20.00
+#define LIN 40
+#define COL 10
 
 typedef struct _FILMES {
 	char nome[40];
 	int sala;
 	int total_lugares = CAPACIDADE_MAX;
+	char mapaSala[LIN][COL];
 } FILMES;
 
 typedef struct _INGRESSOS {
 	int tipo; 				// 1 - normal, 2 - meia, 3 - itasil 
-	float preco;
-	char poltrona[5];
+	float preco = PRECO_NORMAL;
+	char poltrona[4];
 } INGRESSOS;
 
 FILMES listaFilmes[3];
@@ -30,7 +34,15 @@ void registrarFilmes() {
 	strcpy(listaFilmes[2].nome, "Tranformers");
 	listaFilmes[2].sala = 3;
 	
-//	return *listaFilmes;
+	// inicializando mapa das salas
+	for(int k = 0; k < 3; k++) {
+		for(int i = 0; i < LIN; i++) {
+			for(int j = 0; j < COL; j++) {
+				listaFilmes[k].mapaSala[i][j] = '0';
+			}
+		}		
+	}
+	
 }
 
 int selecionarFilme() {
@@ -197,22 +209,93 @@ int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeias
 	}
 }
 
+void exibirMapaDaSala(FILMES *filme) {
+	
+	printf("\n\tSala do filme %s\n\n   ", filme->nome);
+	for(int k = 0; k < 10; k++) {
+		printf("%3c", 'A'+k);
+	}
+	
+	printf("\n");
+	for(int i = 0; i < LIN; i++) {
+		printf("%3d", i+1);
+		for(int j = 0; j < COL; j++) {
+			printf("%3c", filme->mapaSala[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void escolherPoltrona(FILMES *filme, INGRESSOS *listaIngressos, int totalIngressos) {
+	
+	char poltrona[4], *letra, *num;
+	int  linha, coluna, poltronasValidas = 0;
+	
+	exibirMapaDaSala(filme);
+	
+	do {
+		printf("\n-> Selecione a poltrona para o ingresso (%d/%d). As fileiras sao os numeros e as poltronas sao as letras", poltronasValidas+1, totalIngressos);
+		printf("\n-> Escreva da seguinte forma fileira[ESPACO]poltrona: ");
+		
+		// lendo localizacao da poltrona
+		fflush(stdin);
+		scanf("%[^\n]s", poltrona);
+		
+		// localizando linha
+		num = strtok(poltrona, " ");
+		linha = atoi(num)-1;
+		
+		//localizando coluna
+		letra = strtok(NULL, " ");
+		if(*letra >= 'a' && *letra <= 'z') *letra -= 32;
+		coluna = (*letra) - 65;
+
+		if(linha < 0 || linha > LIN-1 || coluna < 0 || coluna > COL-1) {
+			printf("\nEssa poltrona nao existe! Tente novamente.\n\n");
+		}
+		if(filme->mapaSala[linha][coluna] != 'X') {
+			filme->mapaSala[linha][coluna] = 'X';
+			strcpy((listaIngressos + poltronasValidas)->poltrona, poltrona);
+			poltronasValidas++;
+		}
+		else {
+			printf("\nPoltrona ja selecionada! Tente novamente.\n\n");
+		}
+		
+		// exibindo mapa
+		exibirMapaDaSala(filme);
+		
+	} while(poltronasValidas < totalIngressos);
+}
+
+void totalAPagar(INGRESSOS *listaIngressos, int totalIngressos) {
+	float valorFinal = 0;
+	
+	for(int i = 0; i < totalIngressos; i++) {
+		valorFinal += (listaIngressos + i)->preco;
+	}
+	
+	printf("\n\nValor total a pagar dos %d ingressos:\tR$ %.2f\n\n", totalIngressos, valorFinal);
+}
+
 int main(void) {
 	
 	registrarFilmes();
 	int numSala, totalIngressos, totalMeiasValidas, totalItasilValidos;
+	FILMES filmeSelecionado;
 	
 	do {
 		printf("###########  Bem-vindo a rede de cinemas Mariano Pinheiro  ###########\n\n");
 		
 		// selecionando o filme
 		numSala = selecionarFilme();
+		filmeSelecionado = listaFilmes[numSala-1];
 		
 		if(numSala) {
-			printf("\nVoce escolheu %s\n\n", listaFilmes[numSala-1].nome);
+			printf("\nVoce escolheu %s\n\n", filmeSelecionado.nome);
 			
 			// inserir lugares
-			totalIngressos = qtdIngressos(&listaFilmes[numSala-1]);
+			totalIngressos = qtdIngressos(&filmeSelecionado);
 			
 			INGRESSOS listaIngressos[totalIngressos];
 			
@@ -222,13 +305,13 @@ int main(void) {
 			// desconto itasil
 			descontoItasil(listaIngressos, totalIngressos, totalMeiasValidas);
 
-			//
-
-			// preencher e somar valores dos ingressos
+			// selecionar poltronas sala
+			escolherPoltrona(&filmeSelecionado, listaIngressos, totalIngressos);
 			
-			for(int i = 0; i < totalIngressos; i++) {
-				printf("\n%.2f", listaIngressos[i].preco);
-			}	
+			// valor total a pagar
+			totalAPagar(listaIngressos, totalIngressos);
+			
+			printf("Obrigado por escolher o Cinema Mariano Pinheiro. Agradecemos o seu pedido.\n\n\n");
 		}
 				
 	} while(numSala != 0);
