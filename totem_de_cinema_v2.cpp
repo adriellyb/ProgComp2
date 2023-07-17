@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define CAPACIDADE_MAX 400
-#define PRECO_NORMAL 20.00
+#define PRECO_INTEIRA 20.00
 #define LIN 10
 #define COL 40
 
@@ -14,9 +15,7 @@ typedef struct _FILMES {
 } FILMES;
 
 typedef struct _INGRESSOS {
-	int tipo; 				// 1 - normal, 2 - meia, 3 - itasil 
-	float preco = PRECO_NORMAL;
-	char poltrona[4];
+	float preco = PRECO_INTEIRA;
 } INGRESSOS;
 
 FILMES listaFilmes[3];
@@ -137,7 +136,6 @@ int descontoIngressoMeia(INGRESSOS *listaIngressos, int totalIngressos) {
 
 			if(validarCarteiraEstudante(numCarteira)) {
 				(listaIngressos + j)->preco = 10.00; // 20.00 * 0.5 (50% de desconto)
-				(listaIngressos + j)->tipo = 2;
 				meiasValidas++;
 				j++;
 				i++;
@@ -190,7 +188,6 @@ int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeias
 				if(validador) {
 					listaCodigosValidos[i] = codigoDoCliente;
 					(listaIngressos + j)->preco = 14.00; // 20.00 - (20.00 * 0.3) (30% de desconto)
-					(listaIngressos + j)->tipo = 3;
 					j++;
 					i++;
 				}
@@ -255,7 +252,6 @@ void escolherPoltrona(FILMES *filme, INGRESSOS *listaIngressos, int totalIngress
 		}
 		if(filme->mapaSala[linha][coluna] != 'X') {
 			filme->mapaSala[linha][coluna] = 'X';
-			strcpy((listaIngressos + poltronasValidas)->poltrona, poltrona);
 			poltronasValidas++;
 		}
 		else {
