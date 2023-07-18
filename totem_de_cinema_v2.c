@@ -14,10 +14,17 @@ typedef struct _FILMES {
 } FILMES;
 
 typedef struct _INGRESSOS {
-	int tipo; 				// 1 - normal, 2 - meia, 3 - itasil 
+	int tipo; 				// 1 - inteira, 2 - meia, 3 - itasil 
 	float preco;
+	int fileira;			// 1 a 40
+	char poltrona;			// A a J
 } INGRESSOS;
 
+/*	
+	Registra os filmes disponíveis e inicializa o mapa das salas
+	@param FILMES listaFilmes
+	@return NULL
+*/
 void registrarFilmes(FILMES listaFilmes[]) {
 	
 	int i, j, k;
@@ -48,6 +55,11 @@ void registrarFilmes(FILMES listaFilmes[]) {
 	
 }
 
+/*	
+	Solicita ao usuario que selecione um filme em cartaz.
+	@param FILMES listaFilmes
+	@return NULL
+*/
 int selecionarFilme(FILMES listaFilmes[]) {
 	int numSala, i;
 	
@@ -67,6 +79,11 @@ int selecionarFilme(FILMES listaFilmes[]) {
 	}
 }
 
+/*	
+	Solicita ao usuario a quantidade de ingressos desejada.
+	@param FILMES *filme
+	@return totalIngressos
+*/
 int qtdIngressos(FILMES *filme) {
 	
 	int totalIngressos;
@@ -84,6 +101,11 @@ int qtdIngressos(FILMES *filme) {
 	}
 }
 
+/*	
+	Valida o numero da carteira de estudante digitado pelo usuario com o metodo modulo 10
+	@param char numCarteira
+	@returns 0 ou 1
+*/
 int validarCarteiraEstudante(char numCarteira[]) {
 	int numsInt[4], numsMult[4], fator = 2, soma_total = 0, DV;
 	int i, j;
@@ -95,7 +117,7 @@ int validarCarteiraEstudante(char numCarteira[]) {
 	for(i = 3; i >= 0; i--) {
 		// multiplicando cada inteiro de tras pra frente com fator alternando
 		numsMult[i] = numsInt[i] * fator;
-		fator = fator == 2 ? 1 : 2;
+		fator = fator == 2 ? 1 : 2; // multiplicador que alterna entre 2 e 1 a cada algorismo multiplicado
 		
 		// verificando se o numero multiplicado eh maior que 9
 		if(numsMult[i] > 9) {
@@ -114,13 +136,19 @@ int validarCarteiraEstudante(char numCarteira[]) {
 	//	verificando se o resto da divisao entre a soma e 10 eh igual a 0. Caso seja, o digito verificador (DV) vale 0, senao DV = 10 - resto da divisao 
 	DV = soma_total % 10 == 0 ? 0 : 10 - (soma_total % 10);
 	
-	// verificando se DV eh iguail ao ultimo digito da carteira de estudante
+	// verificando se DV eh igual ao ultimo digito da carteira de estudante
 	if(DV == numCarteira[4]-'0')
 		return 1;
 	else
 		return 0;
 }
 
+/*	
+	Solicita ao usuario a quantidade de ingressos que terão o desconto de meia-entrada e verifica a validade das carteiras de estudante.
+	@param INGRESSOS *listaIngressos
+	@param int totalIngressos
+	@return meiasValidas
+*/
 int descontoIngressoMeia(INGRESSOS *listaIngressos, int totalIngressos) {
 	int totalMeias, meiasValidas = 0, i, j = 0;
 	char numCarteira[5];
@@ -165,6 +193,13 @@ int descontoIngressoMeia(INGRESSOS *listaIngressos, int totalIngressos) {
 	return meiasValidas;
 }
 
+/*	
+	Solicita ao usuario a quantidade de ingressos que terão o desconto de cliente Itasil e verifica a validade dos códigos de cliente.
+	@param INGRESSOS *listaIngressos
+	@param int totalIngressos
+	@param int totalMeiasValidas
+	@return itasilValidos
+*/
 int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeiasValidas) {
 	int totalItasil, itasilValidos, codigoDoCliente, i, j = totalMeiasValidas, validador, k;  // i = indice dos ingressos itasil com codigo, j = indice do array de ingressos
 	
@@ -185,7 +220,7 @@ int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeias
 			}
 
 			if(codigoDoCliente % 341 == 0 && codigoDoCliente % 001 == 0) {
-				validador = 1;			// permite que um codigo utilizado n�o seja usado novamente
+				validador = 1;			// permite que um codigo utilizado nao seja usado novamente
 				for(k = 0; k < totalItasil; k++) {
 					if(codigoDoCliente == listaCodigosValidos[k]) {
 						printf("\nCodigo do cliente ja foi utilizado! Tente novamente.\n");
@@ -220,6 +255,11 @@ int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeias
 	return itasilValidos;
 }
 
+/*	
+	Exibe o mapa da sala de cinema selecionada.
+	@param FILMES *filme
+	@return NULL
+*/
 void exibirMapaDaSala(FILMES *filme) {
 	
 	int i, j, k;
@@ -239,7 +279,14 @@ void exibirMapaDaSala(FILMES *filme) {
 	}
 }
 
-void escolherPoltrona(FILMES *filme, int totalIngressos) {
+/*	
+	Solicita ao usuario que escolha as poltronas para os ingressos e marca as poltronas selecionadas no mapa da sala.
+	@param FILMES *filme
+	@param INGRESSOS *listaIngressos
+	@param int totalIngressos
+	@return NULL
+*/
+void escolherPoltrona(FILMES *filme, INGRESSOS *listaIngressos, int totalIngressos) {
 	char poltrona;
 	int  fileira, i;
 	
@@ -250,14 +297,17 @@ void escolherPoltrona(FILMES *filme, int totalIngressos) {
 		printf("\n-> Escreva da seguinte forma fileira[ESPACO]poltrona: ");
 		scanf("%d %c", &fileira, &poltrona);
 		
+		// verifica se a poltrona inserida existe
 		if(fileira < 0 || fileira > COL || (toupper(poltrona) < 'A' || toupper(poltrona) > 'J')) {
 			printf("\nEssa poltrona nao existe! Tente novamente.\n\n");
 			i--;
 			continue;
 		}
-		
+		// verifica se a poltrona inserida esta ocupada ou nao
 		if(filme->mapaSala[toupper(poltrona) - 'A'][fileira - 1] != 'X') {
 			filme->mapaSala[toupper(poltrona) - 'A'][fileira - 1] = 'X';
+			(listaIngressos + i)->fileira = fileira;
+			(listaIngressos + i)->poltrona = toupper(poltrona);
 		}
 		else {
 			printf("\nPoltrona ocupada! Por favor, selecione outra poltrona.\n\n");
@@ -271,12 +321,19 @@ void escolherPoltrona(FILMES *filme, int totalIngressos) {
 	}
 }
 
+/*	
+	Calcula e retorna o valor total a ser pago pelo usuario.
+	@param INGRESSOS *listaIngressos
+	@param int totalIngressos
+	@return valorTotal
+*/
 float totalAPagar(INGRESSOS *listaIngressos, int totalIngressos) {
 	float valorTotal = 0;
 	int i, j;
 	
 	for(i = 0; i < totalIngressos; i++) {
 		if((listaIngressos + i)->tipo != 2 && (listaIngressos + i)->tipo != 3) {
+			// atribui o valor da inteira aos ingressos que não possuem tipo 2 ou 3
 			(listaIngressos + i)->preco = 20.00;
 			(listaIngressos + i)->tipo = 1;
 		}	
@@ -286,6 +343,11 @@ float totalAPagar(INGRESSOS *listaIngressos, int totalIngressos) {
 	return valorTotal;
 }
 
+/*	
+	Função principal do programa que executa o loop principal do sistema de compra de ingressos.
+	@param void
+	@return 0
+*/
 int main(void) {
 	
 	FILMES listaFilmes[3];
@@ -315,7 +377,7 @@ int main(void) {
 			totalItasilValidos = descontoItasil(listaIngressos, totalIngressos, totalMeiasValidas);
 
 			// selecionar poltronas sala
-			escolherPoltrona(&listaFilmes[numSala-1], totalIngressos);
+			escolherPoltrona(&listaFilmes[numSala-1], listaIngressos, totalIngressos);
 			
 			// valor total a pagar
 			valorTotal = totalAPagar(listaIngressos, totalIngressos);
@@ -326,6 +388,14 @@ int main(void) {
 		    printf("Ingressos Inteira: %d\n", totalIngressos-totalMeiasValidas-totalItasilValidos);
 		    printf("Ingressos Meia-entrada: %d\n", totalMeiasValidas);
 		    printf("Ingressos Cliente Itasil: %d\n", totalItasilValidos);
+			printf("Poltronas: ");
+			for (i = 0; i < totalIngressos; i++) {
+				printf("%d%c", listaIngressos[i].fileira, listaIngressos[i].poltrona);
+				if (i < totalIngressos - 1) {
+					printf(", ");
+				}
+			}
+			printf("\n");
 		    printf("Valor total: R$%.2f\n", valorTotal);
 		    printf("-----------------------\n\n");
 			
