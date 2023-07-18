@@ -9,14 +9,13 @@
 typedef struct _FILMES {
 	char nome[40];
 	int sala;
-	int total_lugares;
+	int lugaresDisponiveis;
 	char mapaSala[LIN][COL];
 } FILMES;
 
 typedef struct _INGRESSOS {
 	int tipo; 				// 1 - normal, 2 - meia, 3 - itasil 
 	float preco;
-	char poltrona[4];
 } INGRESSOS;
 
 void registrarFilmes(FILMES listaFilmes[]) {
@@ -26,17 +25,17 @@ void registrarFilmes(FILMES listaFilmes[]) {
 	// registrando primeiro filme
 	strcpy(listaFilmes[0].nome, "Velozes e Furiosos 137");
 	listaFilmes[0].sala = 1;
-	listaFilmes[0].total_lugares = CAPACIDADE_MAX;
+	listaFilmes[0].lugaresDisponiveis = CAPACIDADE_MAX;
 	
 	// registrando segundo filme
 	strcpy(listaFilmes[1].nome, "The Flash");
 	listaFilmes[1].sala = 2;
-	listaFilmes[1].total_lugares = CAPACIDADE_MAX;
+	listaFilmes[1].lugaresDisponiveis = CAPACIDADE_MAX;
 	
 	// registrando terceiro filme
 	strcpy(listaFilmes[2].nome, "Tranformers");
 	listaFilmes[2].sala = 3;
-	listaFilmes[2].total_lugares = CAPACIDADE_MAX;
+	listaFilmes[2].lugaresDisponiveis = CAPACIDADE_MAX;
 	
 	// inicializando mapa das salas
 	for(k = 0; k < 3; k++) {
@@ -49,39 +48,38 @@ void registrarFilmes(FILMES listaFilmes[]) {
 	
 }
 
-int selecionarFilme() {
-	int numSala;
+int selecionarFilme(FILMES listaFilmes[]) {
+	int numSala, i;
 	
-	printf("Estes sao os filmes em cartaz:\nSala 1: Velozes e Furiosos 137\nSala 2: The Flash\nSala 3: Tranformers\n\nOu aperte 0 para SAIR.\n\n");
-	printf("-> Qual filme deseja assistir? Digite a sala que corresponde ao filme desejado: ");
-	
+	for(i = 0; i < 3; i++) {
+        printf("%d - %s (Lugares Disponiveis: %d)\n", i + 1, listaFilmes[i].nome, listaFilmes[i].lugaresDisponiveis);
+    }
+    printf("0 - Sair\n");
+	printf("\n-> Selecione a sala para o filme que deseja ver: ");
 	scanf("%d", &numSala);
 	
-	if(numSala == 1 || numSala == 2 || numSala == 3) {
-		return numSala;
-	}
-	else if(numSala == 0) {
+	if(numSala == 0 || numSala == 1 || numSala == 2 || numSala == 3) {
 		return numSala;
 	}
 	else {
-		printf("\nEsta sala nao existe! Tente novamente.\n\n");
-		selecionarFilme();
+		printf("\nEsta sala nao existe! Por favor, selecione novamente.\n\n");
+		selecionarFilme(listaFilmes);
 	}
 }
 
 int qtdIngressos(FILMES *filme) {
 	
 	int totalIngressos;
-	printf("-> Temos %d ingressos disponiveis. Quantos ingressos deseja comprar? ", filme->total_lugares);
+	printf("-> Quantidade total de ingressos desejados: ", filme->lugaresDisponiveis);
 	scanf("%d", &totalIngressos);
 	
-	if (totalIngressos <= filme->total_lugares && totalIngressos > 0) {
+	if (totalIngressos <= filme->lugaresDisponiveis && totalIngressos > 0) {
 		printf("\nVoce selecionou %d ingesso(s)\n\n", totalIngressos);
-		filme->total_lugares = filme->total_lugares - totalIngressos;
+		filme->lugaresDisponiveis = filme->lugaresDisponiveis - totalIngressos;
 		
 		return totalIngressos;
 	} else {
-		printf("\nQuantidade desejada indisponivel! Tente novamente.\n\n");
+		printf("\nQuantidade desejada indisponivel! Por favor, selecione novamente.\n\n");
 		qtdIngressos(filme);
 	}
 }
@@ -186,7 +184,7 @@ int descontoItasil(INGRESSOS *listaIngressos, int totalIngressos, int totalMeias
 				continue;
 			}
 
-			if(codigoDoCliente % 341 == 0) {
+			if(codigoDoCliente % 341 == 0 && codigoDoCliente % 001 == 0) {
 				validador = 1;			// permite que um codigo utilizado n�o seja usado novamente
 				for(k = 0; k < totalItasil; k++) {
 					if(codigoDoCliente == listaCodigosValidos[k]) {
@@ -226,7 +224,7 @@ void exibirMapaDaSala(FILMES *filme) {
 	
 	int i, j, k;
 	
-	printf("\n\tSala do filme %s\n\n   ", filme->nome);
+	printf("\n\t\t\t-------------------- TELA -------------------\n\n   ");
 	for(k = 0; k < COL; k++) {
 		printf("%3d", k+1);
 	}
@@ -241,45 +239,36 @@ void exibirMapaDaSala(FILMES *filme) {
 	}
 }
 
-void escolherPoltrona(FILMES *filme, INGRESSOS *listaIngressos, int totalIngressos) {
-	
-	char poltrona[4], *letra, *num;
-	int  linha, coluna, poltronasValidas = 0;
+void escolherPoltrona(FILMES *filme, int totalIngressos) {
+	char poltrona;
+	int  fileira, i;
 	
 	exibirMapaDaSala(filme);
 	
-	do {
-		printf("\n-> Selecione a poltrona para o ingresso (%d/%d). As fileiras sao os numeros e as poltronas sao as letras", poltronasValidas+1, totalIngressos);
+	for(i = 0; i < totalIngressos; i++) {
+		printf("\n-> Selecione a poltrona para o ingresso (%d/%d). As fileiras sao os numeros e as poltronas sao as letras", i+1, totalIngressos);
 		printf("\n-> Escreva da seguinte forma fileira[ESPACO]poltrona: ");
+		scanf("%d %c", &fileira, &poltrona);
 		
-		// lendo localizacao da poltrona
-		fflush(stdin);
-		scanf("%[^\n]s", poltrona);
-		
-		//localizando coluna
-		num = strtok(poltrona, " ");
-		coluna = atoi(num)-1;
-		
-		// localizando linha
-		letra = strtok(NULL, " ");
-		if(*letra >= 'a' && *letra <= 'z') *letra -= 32;
-		linha = (*letra) - 65;
-		
-		if(linha < 0 || linha > LIN-1 || coluna < 0 || coluna > COL-1) {
+		if(fileira < 0 || fileira > COL || (toupper(poltrona) < 'A' || toupper(poltrona) > 'J')) {
 			printf("\nEssa poltrona nao existe! Tente novamente.\n\n");
+			i--;
+			continue;
 		}
-		if(filme->mapaSala[linha][coluna] != 'X') {
-			filme->mapaSala[linha][coluna] = 'X';
-			poltronasValidas++;
+		
+		if(filme->mapaSala[toupper(poltrona) - 'A'][fileira - 1] != 'X') {
+			filme->mapaSala[toupper(poltrona) - 'A'][fileira - 1] = 'X';
 		}
 		else {
-			printf("\nPoltrona ja selecionada! Tente novamente.\n\n");
+			printf("\nPoltrona ocupada! Por favor, selecione outra poltrona.\n\n");
+			i--;
+			fileira = 0;
+           poltrona = '\0';
 		}
 		
 		// exibindo mapa
 		exibirMapaDaSala(filme);
-		
-	} while(poltronasValidas < totalIngressos);
+	}
 }
 
 float totalAPagar(INGRESSOS *listaIngressos, int totalIngressos) {
@@ -290,10 +279,7 @@ float totalAPagar(INGRESSOS *listaIngressos, int totalIngressos) {
 		if((listaIngressos + i)->tipo != 2 && (listaIngressos + i)->tipo != 3) {
 			(listaIngressos + i)->preco = 20.00;
 			(listaIngressos + i)->tipo = 1;
-		}
-			
-		printf("%.2f\n", (listaIngressos + i)->preco);
-		
+		}	
 		valorTotal += (listaIngressos + i)->preco;
 	}
 	
@@ -312,7 +298,7 @@ int main(void) {
 		printf("###########  Bem-vindo a rede de cinemas Mariano Pinheiro  ###########\n\n");
 		
 		// selecionando o filme
-		numSala = selecionarFilme();
+		numSala = selecionarFilme(listaFilmes);
 		
 		if(numSala) {
 			printf("\nVoce escolheu %s\n\n", listaFilmes[numSala-1].nome);
@@ -329,7 +315,7 @@ int main(void) {
 			totalItasilValidos = descontoItasil(listaIngressos, totalIngressos, totalMeiasValidas);
 
 			// selecionar poltronas sala
-			escolherPoltrona(&listaFilmes[numSala-1], listaIngressos, totalIngressos);
+			escolherPoltrona(&listaFilmes[numSala-1], totalIngressos);
 			
 			// valor total a pagar
 			valorTotal = totalAPagar(listaIngressos, totalIngressos);
@@ -340,14 +326,6 @@ int main(void) {
 		    printf("Ingressos Inteira: %d\n", totalIngressos-totalMeiasValidas-totalItasilValidos);
 		    printf("Ingressos Meia-entrada: %d\n", totalMeiasValidas);
 		    printf("Ingressos Cliente Itasil: %d\n", totalItasilValidos);
-//		    printf("Poltronas: ");
-//		    for (i = 0; i < totalIngressos; i++) {
-//		        printf("%s", listaIngressos[i].poltrona);
-//		        if (i < totalIngressos - 1) {
-//		            printf(", ");
-//		        }
-//		    }
-		    printf("\n");
 		    printf("Valor total: R$%.2f\n", valorTotal);
 		    printf("-----------------------\n\n");
 			
